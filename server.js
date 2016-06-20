@@ -253,18 +253,27 @@ app.post('/users', function (req, res) {
 // POST /users/login
 app.post('/users/login', function (req, res) {
 	var body = _.pick(req.body, 'email', 'password');
+	var userInstance;
 
 	// authenticte below is not built-in, it is defined by us in user.js
 	db.user.authenticate(body).then( function (user) {
 		var token = user.generateToken('authentication');
-		if (token) {
+		//console.log(token);
+		userInstance = user;
+		return db.token.create({
+			token: token
+		});
+
+		/*if (token) {
 			res.header('Auth', token).json(user.toPublicJSON());
 		}
 		else {
 			res.status(401).send();
-		}
+		}*/
 		
-	}, function () {
+	}).then(function (tokenInstance) {
+		res.header('Auth', tokenInstance.get('token')).json(userInstance.toPublicJSON());
+	}).catch( function () {
 		res.status(401).send();
 	});
 
@@ -287,7 +296,14 @@ app.post('/users/login', function (req, res) {
 	});*/	
 });
 
-
+app.delete('/users/login', middleware.requireAuthentication, function (req, res) {
+	req.token.destroy().then(function () {
+		res.status(204).send();
+	}).catch(function () {
+		res.status(500).send();
+	});
+});
+ 
 db.sequelize.sync({force: true}).then( function () {
 	app.listen(PORT, function() {
 		console.log('Express listening to port ' + PORT + '!');
