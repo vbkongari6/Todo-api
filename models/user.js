@@ -20,7 +20,6 @@ module.exports = function(sequelize, DataTypes) {
 			type: DataTypes.STRING
 		},
 		password: {
-			//type: DataTypes.STRING,
 			type: DataTypes.VIRTUAL,
 			allowNull: false,
 			validate: {
@@ -57,7 +56,6 @@ module.exports = function(sequelize, DataTypes) {
 						if (!user || !bcrypt.compareSync(body.password, user.get('password_hash'))) {
 							return reject();
 						}
-						//res.json(user.toJSON());
 						resolve(user);
 					}, function(e) {
 						reject(500).send();
